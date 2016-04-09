@@ -12,7 +12,7 @@
   ],
   "license": "Apache 2",
   "homepage": "",
-  "private": true,
+  "private": false,
   "ignore": [
     "**/.*",
     "node_modules",
