@@ -1,0 +1,24 @@
+{
+  "name": "reveal.js-tty",
+  "authors": [
+    "Raphael Luta <raphael.luta@aptiwan.com>"
+  ],
+  "description": "tty.js plugin for Reveal.js",
+  "main": "tty.js",
+  "moduleType": [],
+  "keywords": [
+    "tty",
+    "reveal.js"
+  ],
+  "license": "Apache 2",
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "app/bower_components",
+    "test",
+    "tests"
+  ]
+}

@@ -1,0 +1,27 @@
+#tty-open {
+  font: 20px/1.5 sans-serif;
+  position: fixed;
+  right: 0;
+  padding: 10px;
+  height: 50px;
+  color: white;
+  cursor: pointer;
+  margin: 0;
+  background: none;
+  border: none;
+  -webkit-appearance: none;
+}
+
+#tty-open {
+  top: 10px;
+  background: #333;
+}
+
+#tty-open:hover {
+  color: slategrey;
+  background: white;
+}
+
+#tty-open:active {
+  color: orange;
+}
