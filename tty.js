@@ -844,8 +844,7 @@ var RevealTty = window.RevealTty || (function() {
                   win.addListener('close',function () {
                     // restore old conf on close
                     Reveal.configure(Object.assign({},Reveal.getConfig(),{keyboard:oldkb}));
-                    // give focus to current slide
-                    Reveal.getCurrentSlide().focus();
+                    body.focus();
                   })
                 });
               });
