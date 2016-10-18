@@ -17,7 +17,7 @@ var RevealTty = window.RevealTty || (function() {
       loadResource(options.url + 'term.js', 'script', function() {
         loadResource(options.url + 'options.js', 'script', function() {
           loadResource(options.url + 'socket.io/socket.io.js', 'script', function() {
-            loadResource(options.url + 'term.css', 'stylesheet', function() {
+            loadResource(options.path + 'term.css', 'stylesheet', function() {
               loadResource(options.path + 'tty.css', 'stylesheet', function () {
 
                 var initialTitle = document.title;
@@ -101,8 +101,8 @@ var RevealTty = window.RevealTty || (function() {
 
                     while (i--) {
                       win = tty.windows[i];
-                      if (win.minimize) {
-                        win.minimize();
+                      if (win.restore) {
+                        win.restore();
                         win.maximize();
                       }
                     }
@@ -167,6 +167,7 @@ var RevealTty = window.RevealTty || (function() {
                   this.bar = bar;
                   this.button = button;
                   this.title = title;
+                  this.minimized = false;
 
                   this.tabs = [];
                   this.focused = null;
@@ -200,6 +201,7 @@ var RevealTty = window.RevealTty || (function() {
                       , bar = this.bar
                       , grip = this.grip
                       , button = this.button
+                      , minButton = this.minButton
                       , last = 0;
 
                   on(button, 'click', function (ev) {
@@ -254,7 +256,7 @@ var RevealTty = window.RevealTty || (function() {
                   if (this.destroyed) return;
                   this.destroyed = true;
 
-                  if (this.minimize) this.minimize();
+                  if (this.restore) this.restore();
 
                   splice(tty.windows, this);
                   if (tty.windows.length) tty.windows[0].focus();
@@ -273,7 +275,7 @@ var RevealTty = window.RevealTty || (function() {
                   var self = this
                       , el = this.element;
 
-                  if (this.minimize) return;
+                  if (this.restore) return;
 
                   var drag = {
                     left: el.offsetLeft,
@@ -319,7 +321,7 @@ var RevealTty = window.RevealTty || (function() {
                       , el = this.element
                       , term = this.focused;
 
-                  if (this.minimize) delete this.minimize;
+                  if (this.restore) delete this.restore;
 
                   var resize = {
                     w: el.clientWidth,
@@ -369,7 +371,7 @@ var RevealTty = window.RevealTty || (function() {
                 };
 
                 Window.prototype.maximize = function () {
-                  if (this.minimize) return this.minimize();
+                  if (this.restore) return this.restore();
 
                   var self = this
                       , el = this.element
@@ -385,8 +387,8 @@ var RevealTty = window.RevealTty || (function() {
                     root: root.className
                   };
 
-                  this.minimize = function () {
-                    delete this.minimize;
+                  this.restore = function () {
+                    delete this.restore;
 
                     el.style.left = m.left + 'px';
                     el.style.top = m.top + 'px';
@@ -400,8 +402,8 @@ var RevealTty = window.RevealTty || (function() {
 
                     self.resize(m.cols, m.rows);
 
-                    tty.emit('minimize window', self);
-                    self.emit('minimize');
+                    tty.emit('restore window', self);
+                    self.emit('restore');
                   };
 
                   window.scrollTo(0, 0);
@@ -425,6 +427,42 @@ var RevealTty = window.RevealTty || (function() {
 
                   tty.emit('maximize window', this);
                   this.emit('maximize');
+                };
+
+                Window.prototype.minimize = function () {
+                  if (this.restore) return this.restore();
+
+                  var self = this
+                      , el = this.element
+                      , term = this.focused
+                      , x
+                      , y;
+
+                  var m = {
+                    cols: term.cols,
+                    rows: term.rows,
+                    left: el.offsetLeft,
+                    top: el.offsetTop,
+                    root: root.className
+                  };
+
+                  this.restore = function () {
+                    delete this.restore;
+
+                    el.style.display = '';
+                    self.grip.style.display = '';
+
+                    tty.emit('restore window', self);
+                    self.emit('restore');
+                  };
+
+                  window.scrollTo(0, 0);
+
+                  el.style.display = 'none';
+                  this.grip.style.display = 'none';
+                  this.minimized = true;
+                  tty.emit('minimize window', this);
+                  this.emit('minimize');
                 };
 
                 Window.prototype.resize = function (cols, rows) {
@@ -832,20 +870,36 @@ var RevealTty = window.RevealTty || (function() {
                 tty.Terminal = Terminal;
 
                 module = tty;
+                var parent = document.createElement('div');
+                parent.className = 'tty tty-container';
+                var tray = document.createElement('div');
+                tray.className = 'tty tty-tray';
+                parent.appendChild(tray);
                 var open = document.createElement('div');
                 open.className = 'tty tty-open';
-                body.appendChild(open);
-                var oldkb = Object.assign({},Reveal.getConfig().keyboard);
+                parent.appendChild(open);
 
+                body.appendChild(parent);
+                var oldkb = Object.assign({},Reveal.getConfig().keyboard);
+                var win = null;
                 open.addEventListener('click', function (e) {
-                  // disable all Reveal keyboard bindings
-                  Reveal.configure(Object.assign({},Reveal.getConfig(),{keyboard:null}));
-                  var win = new Window(tty.socket);
-                  win.addListener('close',function () {
-                    // restore old conf on close
+                  if (win === null) {
+                    // disable all Reveal keyboard bindings
+                    Reveal.configure(Object.assign({},Reveal.getConfig(),{keyboard:null}));
+                    win = new Window(tty.socket);
+                    win.addListener('close',function () {
+                      // restore old conf on close
+                      Reveal.configure(Object.assign({},Reveal.getConfig(),{keyboard:oldkb}));
+                      body.focus();
+                    })
+                  } else if (win.minimized) {
+                    win.restore();
+                    Reveal.configure(Object.assign({},Reveal.getConfig(),{keyboard:null}));
+                  } else {
+                    win.minimize();
                     Reveal.configure(Object.assign({},Reveal.getConfig(),{keyboard:oldkb}));
                     body.focus();
-                  })
+                  }
                 });
               });
             });
