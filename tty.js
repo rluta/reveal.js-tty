@@ -451,6 +451,7 @@ var RevealTty = window.RevealTty || (function() {
 
                     el.style.display = '';
                     self.grip.style.display = '';
+                    this.minimized = false;
 
                     tty.emit('restore window', self);
                     self.emit('restore');
