@@ -884,7 +884,7 @@ var RevealTty = window.RevealTty || (function() {
                 var oldkb = Object.assign({},Reveal.getConfig().keyboard);
                 var win = null;
                 open.addEventListener('click', function (e) {
-                  if (win === null) {
+                  if (win === null || win.destroyed) {
                     // disable all Reveal keyboard bindings
                     Reveal.configure(Object.assign({},Reveal.getConfig(),{keyboard:null}));
                     win = new Window(tty.socket);
@@ -892,7 +892,6 @@ var RevealTty = window.RevealTty || (function() {
                       // restore old conf on close
                       Reveal.configure(Object.assign({},Reveal.getConfig(),{keyboard:oldkb}));
                       body.focus();
-                      win = null;
                     })
                   } else if (win.minimized) {
                     win.restore();
