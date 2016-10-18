@@ -892,6 +892,7 @@ var RevealTty = window.RevealTty || (function() {
                       // restore old conf on close
                       Reveal.configure(Object.assign({},Reveal.getConfig(),{keyboard:oldkb}));
                       body.focus();
+                      win = null;
                     })
                   } else if (win.minimized) {
                     win.restore();
